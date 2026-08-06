@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sqlite data (event data is local to each venue run, not source)
+/data/*.db
+/data/*.db-*
