@@ -30,8 +30,18 @@ npm run dev
 - Admin panel: http://localhost:3000/admin
 - Public display: http://localhost:3000/display
 
-Data lives in `data/telemetry.db` (SQLite, gitignored, created automatically).
-Delete it to reset an event.
+Data lives in `data/` (gitignored, created automatically): `telemetry.db` is
+the SQLite database, `data/uploads/` holds vehicle logos. Delete the whole
+`data/` directory to reset an event.
+
+Logos are deliberately not stored in `public/` — Next snapshots that
+directory's file list at build time, so anything uploaded at runtime would
+404. They are served by `/api/logo/[file]` instead.
+
+Note there is no migration system: the schema is created with
+`CREATE TABLE IF NOT EXISTS`, which will not alter an existing table. If the
+schema changes, delete `data/` and start fresh — fine before an event, never
+during one.
 
 ## Tests
 
@@ -86,9 +96,11 @@ have credentials and endpoint docs:
 
 - `events` — one row per venue run; `winner_metric` (`elapsed_time` or
   `top_speed`) is switchable from the admin panel.
-- `racers` — name, vehicle, optional photo.
-- `races` — pairs racers, `status`: `pending` → `in_progress` → `completed`.
-  Only one race is `in_progress` at a time.
+- `racers` — the entrant is a vehicle: brand, model, optional logo.
+- `races` — pairs vehicles, `status`: `pending` → `staging` → `racing` →
+  `completed`. Only one race is `staging`/`racing` at a time. `staging` is
+  "on the line", `racing` is "on the run" — the display shows a different
+  view for each.
 - `results` — one row per `(race, racer)`, `UNIQUE(race_id, racer_id)` so
   resubmitting a result overwrites the previous one instead of duplicating.
   `source` distinguishes `manual` entry from `dragy` pulls; `raw_dragy_payload`
