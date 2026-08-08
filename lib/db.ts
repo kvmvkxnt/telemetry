@@ -36,7 +36,7 @@ db.exec(`
     racer_a_id INTEGER NOT NULL REFERENCES racers(id),
     racer_b_id INTEGER REFERENCES racers(id),
     status TEXT NOT NULL DEFAULT 'pending'
-      CHECK (status IN ('pending', 'staging', 'racing', 'completed')),
+      CHECK (status IN ('pending', 'staging', 'racing', 'awaiting_results', 'completed')),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -68,5 +68,39 @@ function addColumn(table: string, column: string, ddl: string) {
 // Logo display size is a venue calibration knob: the right value depends on
 // screen size and viewing distance, so it is tunable live from the admin panel.
 addColumn("events", "logo_scale", "REAL NOT NULL DEFAULT 1");
+
+// Display + admin language, switched from the admin panel.
+addColumn("events", "language", "TEXT NOT NULL DEFAULT 'en'");
+
+// A CHECK constraint can't be altered in place in SQLite, so widening the set
+// of race statuses means rebuilding the table. Guarded on the stored schema
+// text, so this runs once per database and is a no-op afterwards.
+function migrateRaceStatuses() {
+  const row = db
+    .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'races'")
+    .get() as { sql: string } | undefined;
+  if (!row || row.sql.includes("awaiting_results")) return;
+
+  db.pragma("foreign_keys = OFF");
+  db.exec(`
+    BEGIN;
+    CREATE TABLE races_migrated (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+      racer_a_id INTEGER NOT NULL REFERENCES racers(id),
+      racer_b_id INTEGER REFERENCES racers(id),
+      status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'staging', 'racing', 'awaiting_results', 'completed')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    INSERT INTO races_migrated (id, event_id, racer_a_id, racer_b_id, status, created_at)
+      SELECT id, event_id, racer_a_id, racer_b_id, status, created_at FROM races;
+    DROP TABLE races;
+    ALTER TABLE races_migrated RENAME TO races;
+    COMMIT;
+  `);
+  db.pragma("foreign_keys = ON");
+}
+migrateRaceStatuses();
 
 export default db;

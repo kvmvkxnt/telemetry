@@ -39,6 +39,9 @@ export const api = {
   /** Launches a staged race ("lights out — go"). */
   launchRace: (raceId: number) => fetch(`/api/races/${raceId}/start`, { method: "POST" }).then((r) => json(r)),
 
+  /** Run is over, waiting on timing from the track. */
+  finishRun: (raceId: number) => fetch(`/api/races/${raceId}/finish`, { method: "POST" }).then((r) => json(r)),
+
   submitResults: (
     raceId: number,
     results: Array<{
@@ -68,6 +71,13 @@ export const api = {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ winnerMetric }),
+    }).then((r) => json<PublicState>(r)),
+
+  setLanguage: (language: string) =>
+    fetch("/api/state", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ language }),
     }).then((r) => json<PublicState>(r)),
 
   setLogoScale: (logoScale: number) =>

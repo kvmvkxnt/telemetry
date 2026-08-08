@@ -1,5 +1,6 @@
 import db from "./db";
 import { determineWinner, type WinnerMetric } from "./winner";
+import { isLang, type Lang } from "./i18n";
 import { publish } from "./bus";
 
 export type Racer = {
@@ -10,7 +11,12 @@ export type Racer = {
   logo_url: string | null;
 };
 
-export type RaceStatus = "pending" | "staging" | "racing" | "completed";
+export type RaceStatus =
+  | "pending"
+  | "staging"
+  | "racing"
+  | "awaiting_results"
+  | "completed";
 
 export type Race = {
   id: number;
@@ -41,6 +47,7 @@ export type EventRow = {
   date: string;
   winner_metric: WinnerMetric;
   logo_scale: number;
+  language: Lang;
 };
 
 // Single-event-per-instance app (see README topology). Event row 1 always exists.
@@ -56,6 +63,13 @@ export function getOrCreateEvent(): EventRow {
 export function setWinnerMetric(metric: WinnerMetric) {
   getOrCreateEvent();
   db.prepare("UPDATE events SET winner_metric = ? WHERE id = 1").run(metric);
+  publish();
+}
+
+export function setLanguage(lang: string) {
+  if (!isLang(lang)) throw new Error("unsupported language");
+  getOrCreateEvent();
+  db.prepare("UPDATE events SET language = ? WHERE id = 1").run(lang);
   publish();
 }
 
@@ -121,6 +135,15 @@ export function stageRace(raceId: number) {
 /** Launches a staged race ("lights out"). */
 export function launchRace(raceId: number) {
   db.prepare("UPDATE races SET status = 'racing' WHERE id = ? AND status = 'staging'").run(raceId);
+  publish();
+}
+
+/** Run is over, timing not yet relayed. Holds the display on a waiting state
+ *  instead of dropping straight back to the leaderboard. */
+export function finishRun(raceId: number) {
+  db.prepare(
+    "UPDATE races SET status = 'awaiting_results' WHERE id = ? AND status = 'racing'"
+  ).run(raceId);
   publish();
 }
 
@@ -256,6 +279,8 @@ export type PublicState = {
   currentRace: PublicRace | null;
   leaderboard: PublicRace[];
   upcoming: PublicRace[];
+  /** Runs finished but not yet scored — may or may not be the one on screen. */
+  awaitingResults: PublicRace[];
 };
 
 function hydrateRace(race: Race, racersById: Map<number, Racer>, metric: WinnerMetric): PublicRace {
@@ -287,9 +312,15 @@ export function getPublicState(): PublicState {
   const racersById = new Map(racers.map((r) => [r.id, r]));
   const races = listRaces();
 
-  const currentRaceRow = races.find((r) => r.status === "staging" || r.status === "racing") ?? null;
+  // A race lining up or running takes the screen over one still awaiting its
+  // times, so timing can be relayed late without freezing the display.
+  const currentRaceRow =
+    races.find((r) => r.status === "staging" || r.status === "racing") ??
+    races.find((r) => r.status === "awaiting_results") ??
+    null;
   const completed = races.filter((r) => r.status === "completed");
   const pending = races.filter((r) => r.status === "pending");
+  const awaiting = races.filter((r) => r.status === "awaiting_results");
 
   return {
     event,
@@ -297,5 +328,6 @@ export function getPublicState(): PublicState {
     currentRace: currentRaceRow ? hydrateRace(currentRaceRow, racersById, event.winner_metric) : null,
     leaderboard: completed.map((r) => hydrateRace(r, racersById, event.winner_metric)),
     upcoming: pending.map((r) => hydrateRace(r, racersById, event.winner_metric)),
+    awaitingResults: awaiting.map((r) => hydrateRace(r, racersById, event.winner_metric)),
   };
 }

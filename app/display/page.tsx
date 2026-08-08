@@ -8,6 +8,7 @@ import { RaceInProgress } from "./RaceInProgress";
 import { RacingView } from "./RacingView";
 import { ResultReveal } from "./ResultReveal";
 import { Leaderboard } from "./Leaderboard";
+import { AwaitingResults } from "./AwaitingResults";
 import type { PublicRace } from "@/lib/store";
 
 const REVEAL_DURATION_MS = 9000;
@@ -51,9 +52,11 @@ export default function DisplayPage() {
     );
   }
 
+  const lang = state.event.language;
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#050505] text-white">
-      <ConnectionBadge status={status} />
+      <ConnectionBadge status={status} lang={lang} />
 
       <div className="absolute inset-x-0 top-5 z-20 text-center text-sm font-semibold tracking-[0.45em] text-neutral-600 uppercase">
         {state.event.name}
@@ -80,16 +83,24 @@ export default function DisplayPage() {
                 race={revealRace}
                 metric={state.event.winner_metric}
                 logoScale={state.event.logo_scale}
+                lang={lang}
               />
             ) : state.currentRace?.status === "staging" ? (
-              <RaceInProgress race={state.currentRace} logoScale={state.event.logo_scale} />
+              <RaceInProgress race={state.currentRace} logoScale={state.event.logo_scale} lang={lang} />
             ) : state.currentRace?.status === "racing" ? (
-              <RacingView race={state.currentRace} logoScale={state.event.logo_scale} />
+              <RacingView race={state.currentRace} logoScale={state.event.logo_scale} lang={lang} />
+            ) : state.currentRace?.status === "awaiting_results" ? (
+              <AwaitingResults
+                race={state.currentRace}
+                logoScale={state.event.logo_scale}
+                lang={lang}
+              />
             ) : (
               <Leaderboard
                 races={state.leaderboard}
                 metric={state.event.winner_metric}
                 logoScale={state.event.logo_scale}
+                lang={lang}
               />
             )}
           </motion.div>

@@ -5,10 +5,12 @@ import {
   createRacer,
   deleteRace,
   deleteRacer,
+  finishRun,
   getPublicState,
   getResultsForRace,
   launchRace,
   resetEvent,
+  setLanguage,
   stageRace,
   submitResults,
 } from "./store";
@@ -114,6 +116,53 @@ describe("store", () => {
     resetEvent("all");
     state = getPublicState();
     expect(state.racers).toHaveLength(0);
+  });
+
+  it("a finished run waits on results before it is scored", () => {
+    resetEvent("all");
+    const a = createRacer("BMW", "M3", null);
+    const race = createRace(a.id, null);
+    stageRace(race.id);
+    launchRace(race.id);
+    finishRun(race.id);
+
+    let state = getPublicState();
+    expect(state.currentRace?.status).toBe("awaiting_results");
+    expect(state.awaitingResults.map((r) => r.id)).toContain(race.id);
+    expect(state.leaderboard).toHaveLength(0);
+
+    submitResults(race.id, [
+      { racerId: a.id, distance: 402, elapsedTime: 11, topSpeed: 120, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+    ]);
+
+    state = getPublicState();
+    expect(state.awaitingResults).toHaveLength(0);
+    expect(state.leaderboard.map((r) => r.id)).toContain(race.id);
+  });
+
+  it("a new race takes the screen but does not discard one awaiting results", () => {
+    resetEvent("all");
+    const a = createRacer("Honda", "NSX", null);
+    const b = createRacer("Lexus", "LFA", null);
+    const first = createRace(a.id, null);
+    const second = createRace(b.id, null);
+
+    stageRace(first.id);
+    launchRace(first.id);
+    finishRun(first.id);
+    stageRace(second.id);
+
+    const state = getPublicState();
+    expect(state.currentRace?.id).toBe(second.id);
+    // The first race keeps its status so its times can still be entered.
+    expect(state.awaitingResults.map((r) => r.id)).toContain(first.id);
+  });
+
+  it("rejects an unsupported language", () => {
+    expect(() => setLanguage("de")).toThrow();
+    setLanguage("uz");
+    expect(getPublicState().event.language).toBe("uz");
+    setLanguage("en");
   });
 
   it("only one race can be staging/racing at a time", () => {
