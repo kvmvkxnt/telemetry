@@ -10,31 +10,43 @@ import { ResultReveal } from "./ResultReveal";
 import { Leaderboard } from "./Leaderboard";
 import { AwaitingResults } from "./AwaitingResults";
 import type { PublicRace } from "@/lib/store";
+import { findRevealTarget, resultSignature } from "@/lib/reveal";
 
 const REVEAL_DURATION_MS = 9000;
 
 export default function DisplayPage() {
   const { state, status } = useLiveState();
-  const [revealRace, setRevealRace] = useState<PublicRace | null>(null);
-  const seenCompletedIds = useRef<Set<number> | null>(null);
+  // The token forces a remount when the same race reveals twice in a row (a
+  // corrected result): without it React reuses the component and the confetti
+  // and count-ups never re-run.
+  const [reveal, setReveal] = useState<{ race: PublicRace; token: number } | null>(null);
+  const revealToken = useRef(0);
+  const seenResults = useRef<Map<number, string> | null>(null);
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!state) return;
 
-    // First snapshot ever: mark existing completed races as already-seen so
-    // reloading the display mid-event doesn't replay old reveals.
-    if (seenCompletedIds.current === null) {
-      seenCompletedIds.current = new Set(state.leaderboard.map((r) => r.id));
+    // First snapshot ever: record what is already on the board so reloading
+    // the display mid-event doesn't replay old reveals.
+    if (seenResults.current === null) {
+      seenResults.current = new Map(state.leaderboard.map((r) => [r.id, resultSignature(r)]));
       return;
     }
 
-    const newlyCompleted = state.leaderboard.find((r) => !seenCompletedIds.current!.has(r.id));
-    if (newlyCompleted) {
-      seenCompletedIds.current!.add(newlyCompleted.id);
-      setRevealRace(newlyCompleted);
+    const changed = findRevealTarget(state.leaderboard, seenResults.current);
+    if (changed) {
+      seenResults.current.set(changed.id, resultSignature(changed));
+      revealToken.current += 1;
+      setReveal({ race: changed, token: revealToken.current });
       if (revealTimer.current) clearTimeout(revealTimer.current);
-      revealTimer.current = setTimeout(() => setRevealRace(null), REVEAL_DURATION_MS);
+      revealTimer.current = setTimeout(() => setReveal(null), REVEAL_DURATION_MS);
+    }
+
+    // Forget races that left the board, so a cleared race reveals again when
+    // it is re-run rather than being remembered forever.
+    for (const id of seenResults.current.keys()) {
+      if (!state.leaderboard.some((r) => r.id === id)) seenResults.current.delete(id);
     }
   }, [state]);
 
@@ -66,8 +78,8 @@ export default function DisplayPage() {
         <AnimatePresence mode="wait">
           <motion.div
             key={
-              revealRace
-                ? `reveal-${revealRace.id}`
+              reveal
+                ? `reveal-${reveal.race.id}-${reveal.token}`
                 : state.currentRace
                   ? `${state.currentRace.status}-${state.currentRace.id}`
                   : "board"
@@ -78,9 +90,9 @@ export default function DisplayPage() {
             transition={{ duration: 0.35 }}
             className="h-full"
           >
-            {revealRace ? (
+            {reveal ? (
               <ResultReveal
-                race={revealRace}
+                race={reveal.race}
                 metric={state.event.winner_metric}
                 logoScale={state.event.logo_scale}
                 lang={lang}
