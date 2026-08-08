@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { PublicRace } from "@/lib/store";
 import type { WinnerMetric } from "@/lib/winner";
 import { StageFrame, WipeText } from "./StageFrame";
+import { LogoBox } from "./LogoBox";
+import { translator, type Lang } from "@/lib/i18n";
 
 const ROW_LOGO_BASE = 52;
 
@@ -11,11 +13,14 @@ export function Leaderboard({
   races,
   metric,
   logoScale,
+  lang,
 }: {
   races: PublicRace[];
   metric: WinnerMetric;
   logoScale: number;
+  lang: Lang;
 }) {
+  const t = translator(lang);
   const rows = races
     .flatMap((race) =>
       race.results.map((r) => ({
@@ -37,13 +42,13 @@ export function Leaderboard({
       <div className="flex h-full flex-col items-center justify-center">
         {rows.length === 0 ? (
           <WipeText>
-            <div className="title-type text-4xl text-neutral-600">Standing by</div>
+            <div className="title-type text-4xl text-neutral-600">{t("standingBy")}</div>
           </WipeText>
         ) : (
           <div className="w-full max-w-4xl">
             <WipeText>
               <div className="mb-8 text-center title-type text-3xl tracking-[0.35em] text-neutral-400">
-                Leaderboard
+                {t("leaderboard")}
               </div>
             </WipeText>
 
@@ -75,13 +80,7 @@ export function Leaderboard({
                         {i + 1}
                       </span>
                       {row.racer!.logo_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={row.racer!.logo_url}
-                          alt=""
-                          style={{ height: ROW_LOGO_BASE * logoScale }}
-                          className="w-auto object-contain"
-                        />
+                        <LogoBox src={row.racer!.logo_url} height={ROW_LOGO_BASE * logoScale} />
                       ) : null}
                       <span className="title-type text-2xl text-white">
                         {row.racer!.brand}{" "}
@@ -99,7 +98,7 @@ export function Leaderboard({
                         }
                       >
                         {row.result.elapsed_time?.toFixed(2) ?? "–"}
-                        <span className="ml-1 text-xs text-neutral-500">s</span>
+                        <span className="ml-1 text-xs text-neutral-500">{t("unitSeconds")}</span>
                       </span>
                       <span
                         className={
@@ -109,7 +108,7 @@ export function Leaderboard({
                         }
                       >
                         {row.result.top_speed?.toFixed(1) ?? "–"}
-                        <span className="ml-1 text-xs text-neutral-500">mph</span>
+                        <span className="ml-1 text-xs text-neutral-500">{t("unitSpeed")}</span>
                       </span>
                     </div>
                   </motion.div>

@@ -7,6 +7,8 @@ import type { PublicRace, Result, Racer } from "@/lib/store";
 import type { WinnerMetric } from "@/lib/winner";
 import { useCountUp } from "@/lib/client/useCountUp";
 import { StageFrame, WipeText } from "./StageFrame";
+import { LogoBox } from "./LogoBox";
+import { translator, type Lang } from "@/lib/i18n";
 
 const RESULT_LOGO_BASE = 110;
 
@@ -14,11 +16,14 @@ export function ResultReveal({
   race,
   metric,
   logoScale,
+  lang,
 }: {
   race: PublicRace;
   metric: WinnerMetric;
   logoScale: number;
+  lang: Lang;
 }) {
+  const t = translator(lang);
   useEffect(() => {
     if (race.winnerRacerId == null) return;
     // Two bursts: an immediate pop, then side cannons as the winner lands.
@@ -48,7 +53,7 @@ export function ResultReveal({
         />
 
         <WipeText delay={0.35}>
-          <div className="title-type text-3xl tracking-[0.35em] text-neutral-400">Result</div>
+          <div className="title-type text-3xl tracking-[0.35em] text-neutral-400">{t("resultTitle")}</div>
         </WipeText>
 
         <div className="flex items-stretch gap-10">
@@ -60,6 +65,7 @@ export function ResultReveal({
             side="left"
             delay={0.5}
             logoScale={logoScale}
+            lang={lang}
           />
           {race.racerB && (
             <ResultCard
@@ -70,6 +76,7 @@ export function ResultReveal({
               side="right"
               delay={0.62}
               logoScale={logoScale}
+              lang={lang}
             />
           )}
         </div>
@@ -93,6 +100,7 @@ function ResultCard({
   side,
   delay,
   logoScale,
+  lang,
 }: {
   racer: Racer;
   result: Result | null;
@@ -101,7 +109,9 @@ function ResultCard({
   side: "left" | "right";
   delay: number;
   logoScale: number;
+  lang: Lang;
 }) {
+  const t = translator(lang);
   const elapsed = useCountUp(result?.elapsed_time ?? 0, 1600);
   const speed = useCountUp(result?.top_speed ?? 0, 1600);
 
@@ -125,21 +135,19 @@ function ResultCard({
             transition={{ delay: delay + 0.45, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mb-3 text-center title-type text-xl tracking-[0.3em] text-yellow-400"
           >
-            ★ Winner ★
+            ★ {t("winner")} ★
           </motion.div>
         )}
 
         <div className="flex flex-col items-center gap-2 text-center">
           {racer.logo_url ? (
-            <motion.img
-              src={racer.logo_url}
-              alt=""
+            <motion.div
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.55, delay: delay + 0.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ height: RESULT_LOGO_BASE * logoScale }}
-              className="w-auto max-w-full object-contain"
-            />
+            >
+              <LogoBox src={racer.logo_url} height={RESULT_LOGO_BASE * logoScale} />
+            </motion.div>
           ) : null}
           <div className="title-type text-4xl leading-none text-white">{racer.brand}</div>
           <div className="mb-4 text-sm font-semibold tracking-[0.25em] text-neutral-400 uppercase">
@@ -148,13 +156,13 @@ function ResultCard({
         </div>
 
         <div className="space-y-1.5">
-          <Metric label="Elapsed" value={elapsed} unit="s" emphasize={metric === "elapsed_time"} delay={delay} />
-          <Metric label="Top Speed" value={speed} unit="mph" emphasize={metric === "top_speed"} delay={delay} />
+          <Metric label={t("elapsed")} value={elapsed} unit={t("unitSeconds")} emphasize={metric === "elapsed_time"} delay={delay} />
+          <Metric label={t("topSpeedLabel")} value={speed} unit={t("unitSpeed")} emphasize={metric === "top_speed"} delay={delay} />
           {result?.zero_to_100_time != null && (
-            <Metric label="0-100" value={result.zero_to_100_time} unit="s" delay={delay} />
+            <Metric label={t("zeroTo100")} value={result.zero_to_100_time} unit={t("unitSeconds")} delay={delay} />
           )}
           {result?.hundred_to_200_time != null && (
-            <Metric label="100-200" value={result.hundred_to_200_time} unit="s" delay={delay} />
+            <Metric label={t("hundredTo200")} value={result.hundred_to_200_time} unit={t("unitSeconds")} delay={delay} />
           )}
         </div>
       </div>

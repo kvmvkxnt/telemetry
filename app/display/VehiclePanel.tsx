@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { Racer } from "@/lib/store";
+import { LogoBox } from "./LogoBox";
 
 /** Slanted broadcast card: logo, brand, model. Slides in from its own side. */
 // Base heights in px at scale 1, sized for a projector rather than a laptop.
@@ -41,15 +42,17 @@ export function VehiclePanel({
     >
       <div className="unslant flex flex-col items-center gap-4 text-center">
         {racer.logo_url ? (
-          <motion.img
-            src={racer.logo_url}
-            alt=""
+          <motion.div
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6, delay: delay + 0.15, ease: [0.16, 1, 0.3, 1] }}
-            style={{ height: LOGO_BASE[size] * logoScale }}
-            className="w-auto max-w-full object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.25)]"
-          />
+          >
+            <LogoBox
+              src={racer.logo_url}
+              height={LOGO_BASE[size] * logoScale}
+              className="drop-shadow-[0_0_25px_rgba(255,255,255,0.25)]"
+            />
+          </motion.div>
         ) : null}
         <div
           className={`title-type leading-none text-white ${size === "lg" ? "text-5xl" : "text-4xl"}`}
