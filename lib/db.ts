@@ -9,9 +9,10 @@ const db = new Database(dbPath);
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");
 
-// ponytail: no migration framework — CREATE TABLE IF NOT EXISTS never alters
-// an existing table. A schema change means deleting data/ and starting over,
-// which is fine pre-event (see README); it must not happen mid-event.
+// ponytail: no migration framework. CREATE TABLE IF NOT EXISTS never alters an
+// existing table, so added columns go through addColumn() below. Anything
+// bigger than a new column (renames, constraint changes) still means deleting
+// data/ and starting over — fine pre-event, never mid-event.
 db.exec(`
   CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,5 +55,18 @@ db.exec(`
     UNIQUE(race_id, racer_id)
   );
 `);
+
+/** Adds a column to an existing table if it isn't there yet. Table/column
+ *  names are literals from this file, never user input. */
+function addColumn(table: string, column: string, ddl: string) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+  }
+}
+
+// Logo display size is a venue calibration knob: the right value depends on
+// screen size and viewing distance, so it is tunable live from the admin panel.
+addColumn("events", "logo_scale", "REAL NOT NULL DEFAULT 1");
 
 export default db;

@@ -5,7 +5,17 @@ import type { PublicRace } from "@/lib/store";
 import type { WinnerMetric } from "@/lib/winner";
 import { StageFrame, WipeText } from "./StageFrame";
 
-export function Leaderboard({ races, metric }: { races: PublicRace[]; metric: WinnerMetric }) {
+const ROW_LOGO_BASE = 52;
+
+export function Leaderboard({
+  races,
+  metric,
+  logoScale,
+}: {
+  races: PublicRace[];
+  metric: WinnerMetric;
+  logoScale: number;
+}) {
   const rows = races
     .flatMap((race) =>
       race.results.map((r) => ({
@@ -69,7 +79,8 @@ export function Leaderboard({ races, metric }: { races: PublicRace[]; metric: Wi
                         <img
                           src={row.racer!.logo_url}
                           alt=""
-                          className="h-10 w-10 object-contain"
+                          style={{ height: ROW_LOGO_BASE * logoScale }}
+                          className="w-auto object-contain"
                         />
                       ) : null}
                       <span className="title-type text-2xl text-white">

@@ -76,13 +76,21 @@ export default function DisplayPage() {
             className="h-full"
           >
             {revealRace ? (
-              <ResultReveal race={revealRace} metric={state.event.winner_metric} />
+              <ResultReveal
+                race={revealRace}
+                metric={state.event.winner_metric}
+                logoScale={state.event.logo_scale}
+              />
             ) : state.currentRace?.status === "staging" ? (
-              <RaceInProgress race={state.currentRace} />
+              <RaceInProgress race={state.currentRace} logoScale={state.event.logo_scale} />
             ) : state.currentRace?.status === "racing" ? (
-              <RacingView race={state.currentRace} />
+              <RacingView race={state.currentRace} logoScale={state.event.logo_scale} />
             ) : (
-              <Leaderboard races={state.leaderboard} metric={state.event.winner_metric} />
+              <Leaderboard
+                races={state.leaderboard}
+                metric={state.event.winner_metric}
+                logoScale={state.event.logo_scale}
+              />
             )}
           </motion.div>
         </AnimatePresence>

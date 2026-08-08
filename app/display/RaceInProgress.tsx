@@ -6,7 +6,7 @@ import { StageFrame, WipeText } from "./StageFrame";
 import { VehiclePanel } from "./VehiclePanel";
 
 /** status: staging — cars are lined up, not launched yet. */
-export function RaceInProgress({ race }: { race: PublicRace }) {
+export function RaceInProgress({ race, logoScale }: { race: PublicRace; logoScale: number }) {
   return (
     <StageFrame intensity="calm" accent="#e11d2a">
       <motion.div
@@ -22,7 +22,7 @@ export function RaceInProgress({ race }: { race: PublicRace }) {
         </WipeText>
 
         <div className="flex items-center gap-10">
-          <VehiclePanel racer={race.racerA} side="left" delay={0.25} />
+          <VehiclePanel racer={race.racerA} side="left" delay={0.25} logoScale={logoScale} />
 
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
@@ -33,7 +33,7 @@ export function RaceInProgress({ race }: { race: PublicRace }) {
             VS
           </motion.div>
 
-          {race.racerB && <VehiclePanel racer={race.racerB} side="right" delay={0.35} />}
+          {race.racerB && <VehiclePanel racer={race.racerB} side="right" delay={0.35} logoScale={logoScale} />}
         </div>
 
         <WipeText delay={0.7}>

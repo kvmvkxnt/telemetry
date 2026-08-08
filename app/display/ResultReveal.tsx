@@ -8,7 +8,17 @@ import type { WinnerMetric } from "@/lib/winner";
 import { useCountUp } from "@/lib/client/useCountUp";
 import { StageFrame, WipeText } from "./StageFrame";
 
-export function ResultReveal({ race, metric }: { race: PublicRace; metric: WinnerMetric }) {
+const RESULT_LOGO_BASE = 110;
+
+export function ResultReveal({
+  race,
+  metric,
+  logoScale,
+}: {
+  race: PublicRace;
+  metric: WinnerMetric;
+  logoScale: number;
+}) {
   useEffect(() => {
     if (race.winnerRacerId == null) return;
     // Two bursts: an immediate pop, then side cannons as the winner lands.
@@ -49,6 +59,7 @@ export function ResultReveal({ race, metric }: { race: PublicRace; metric: Winne
             metric={metric}
             side="left"
             delay={0.5}
+            logoScale={logoScale}
           />
           {race.racerB && (
             <ResultCard
@@ -58,6 +69,7 @@ export function ResultReveal({ race, metric }: { race: PublicRace; metric: Winne
               metric={metric}
               side="right"
               delay={0.62}
+              logoScale={logoScale}
             />
           )}
         </div>
@@ -80,6 +92,7 @@ function ResultCard({
   metric,
   side,
   delay,
+  logoScale,
 }: {
   racer: Racer;
   result: Result | null;
@@ -87,6 +100,7 @@ function ResultCard({
   metric: WinnerMetric;
   side: "left" | "right";
   delay: number;
+  logoScale: number;
 }) {
   const elapsed = useCountUp(result?.elapsed_time ?? 0, 1600);
   const speed = useCountUp(result?.top_speed ?? 0, 1600);
@@ -96,7 +110,7 @@ function ResultCard({
       initial={{ x: side === "left" ? -140 : 140, opacity: 0 }}
       animate={{ x: 0, opacity: isWinner ? 1 : 0.6 }}
       transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
-      className={`slant sweep ${isWinner ? "sweep-gold" : ""} relative w-[400px] overflow-hidden border-2 px-10 py-8 ${
+      className={`slant sweep ${isWinner ? "sweep-gold" : ""} relative w-[440px] overflow-hidden border-2 px-10 py-8 ${
         isWinner ? "border-yellow-400 bg-yellow-400/12" : "border-white/10 bg-white/[0.04]"
       }`}
       style={
@@ -123,7 +137,8 @@ function ResultCard({
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.55, delay: delay + 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="h-16 w-auto object-contain"
+              style={{ height: RESULT_LOGO_BASE * logoScale }}
+              className="w-auto max-w-full object-contain"
             />
           ) : null}
           <div className="title-type text-4xl leading-none text-white">{racer.brand}</div>

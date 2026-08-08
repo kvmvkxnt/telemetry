@@ -35,24 +35,39 @@ export type Result = {
   created_at: string;
 };
 
+export type EventRow = {
+  id: number;
+  name: string;
+  date: string;
+  winner_metric: WinnerMetric;
+  logo_scale: number;
+};
+
 // Single-event-per-instance app (see README topology). Event row 1 always exists.
-export function getOrCreateEvent() {
+export function getOrCreateEvent(): EventRow {
   const existing = db.prepare("SELECT * FROM events WHERE id = 1").get();
-  if (existing) return existing as { id: number; name: string; date: string; winner_metric: WinnerMetric };
+  if (existing) return existing as EventRow;
   db.prepare(
     "INSERT INTO events (id, name, date, winner_metric) VALUES (1, ?, ?, 'elapsed_time')"
   ).run("Drag Race Event", new Date().toISOString().slice(0, 10));
-  return db.prepare("SELECT * FROM events WHERE id = 1").get() as {
-    id: number;
-    name: string;
-    date: string;
-    winner_metric: WinnerMetric;
-  };
+  return db.prepare("SELECT * FROM events WHERE id = 1").get() as EventRow;
 }
 
 export function setWinnerMetric(metric: WinnerMetric) {
   getOrCreateEvent();
   db.prepare("UPDATE events SET winner_metric = ? WHERE id = 1").run(metric);
+  publish();
+}
+
+export const LOGO_SCALE_MIN = 0.5;
+export const LOGO_SCALE_MAX = 3;
+
+export function setLogoScale(scale: number) {
+  if (!Number.isFinite(scale) || scale < LOGO_SCALE_MIN || scale > LOGO_SCALE_MAX) {
+    throw new Error(`logo scale must be between ${LOGO_SCALE_MIN} and ${LOGO_SCALE_MAX}`);
+  }
+  getOrCreateEvent();
+  db.prepare("UPDATE events SET logo_scale = ? WHERE id = 1").run(scale);
   publish();
 }
 
@@ -172,6 +187,58 @@ export function submitResults(raceId: number, results: ResultInput[]) {
   publish();
 }
 
+/** Deletes a race and its results (results cascade on race_id). */
+export function deleteRace(raceId: number) {
+  const info = db.prepare("DELETE FROM races WHERE id = ?").run(raceId);
+  if (info.changes === 0) throw new Error("Race not found");
+  publish();
+}
+
+/** Clears a completed race's results and puts it back in the running order. */
+export function clearRaceResults(raceId: number) {
+  const tx = db.transaction((id: number) => {
+    db.prepare("DELETE FROM results WHERE race_id = ?").run(id);
+    db.prepare("UPDATE races SET status = 'pending' WHERE id = ?").run(id);
+  });
+  tx(raceId);
+  publish();
+}
+
+/** Deletes a vehicle. Refuses while races still reference it, since those
+ *  races would lose an entrant — delete the races first. */
+export function deleteRacer(racerId: number) {
+  const used = db
+    .prepare("SELECT COUNT(*) AS n FROM races WHERE racer_a_id = ? OR racer_b_id = ?")
+    .get(racerId, racerId) as { n: number };
+  if (used.n > 0) {
+    throw new Error(`Vehicle is in ${used.n} race(s) — delete those races first`);
+  }
+  const info = db.prepare("DELETE FROM racers WHERE id = ?").run(racerId);
+  if (info.changes === 0) throw new Error("Vehicle not found");
+  publish();
+}
+
+export type ResetScope = "results" | "races" | "all";
+
+/** Bulk clear. "results" keeps the running order, "races" keeps the vehicles,
+ *  "all" empties the event. Uploaded logo files are left on disk. */
+export function resetEvent(scope: ResetScope) {
+  const event = getOrCreateEvent();
+  const tx = db.transaction(() => {
+    if (scope === "results") {
+      db.prepare("DELETE FROM results WHERE race_id IN (SELECT id FROM races WHERE event_id = ?)").run(event.id);
+      db.prepare("UPDATE races SET status = 'pending' WHERE event_id = ?").run(event.id);
+      return;
+    }
+    db.prepare("DELETE FROM races WHERE event_id = ?").run(event.id);
+    if (scope === "all") {
+      db.prepare("DELETE FROM racers WHERE event_id = ?").run(event.id);
+    }
+  });
+  tx();
+  publish();
+}
+
 export function getResultsForRace(raceId: number): Result[] {
   return db.prepare("SELECT * FROM results WHERE race_id = ?").all(raceId) as Result[];
 }
@@ -184,7 +251,7 @@ export type PublicRace = Race & {
 };
 
 export type PublicState = {
-  event: { id: number; name: string; date: string; winner_metric: WinnerMetric };
+  event: EventRow;
   racers: Racer[];
   currentRace: PublicRace | null;
   leaderboard: PublicRace[];

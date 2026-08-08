@@ -69,4 +69,28 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ winnerMetric }),
     }).then((r) => json<PublicState>(r)),
+
+  setLogoScale: (logoScale: number) =>
+    fetch("/api/state", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ logoScale }),
+    }).then((r) => json<PublicState>(r)),
+
+  deleteRace: (raceId: number) =>
+    fetch(`/api/races/${raceId}`, { method: "DELETE" }).then((r) => json(r)),
+
+  /** Wipes a race's results and returns it to the running order. */
+  clearRaceResults: (raceId: number) =>
+    fetch(`/api/races/${raceId}/result`, { method: "DELETE" }).then((r) => json(r)),
+
+  deleteRacer: (racerId: number) =>
+    fetch(`/api/racers/${racerId}`, { method: "DELETE" }).then((r) => json(r)),
+
+  reset: (scope: "results" | "races" | "all") =>
+    fetch("/api/reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scope }),
+    }).then((r) => json(r)),
 };

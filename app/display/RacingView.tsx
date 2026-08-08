@@ -7,7 +7,7 @@ import { VehiclePanel } from "./VehiclePanel";
 
 /** status: racing — cars are on the run. Speed comes from the field and the
  *  light bar, not from moving the cards. Panels stay rock steady. */
-export function RacingView({ race }: { race: PublicRace }) {
+export function RacingView({ race, logoScale }: { race: PublicRace; logoScale: number }) {
   return (
     <StageFrame intensity="fast" accent="#10b981">
       <motion.div key={race.id} className="flex h-full flex-col items-center justify-center gap-12">
@@ -29,9 +29,9 @@ export function RacingView({ race }: { race: PublicRace }) {
         </div>
 
         <div className="flex items-center gap-10">
-          <VehiclePanel racer={race.racerA} side="left" delay={0.1} tone="live" />
+          <VehiclePanel racer={race.racerA} side="left" delay={0.1} tone="live" logoScale={logoScale} />
           {race.racerB && (
-            <VehiclePanel racer={race.racerB} side="right" delay={0.18} tone="live" />
+            <VehiclePanel racer={race.racerB} side="right" delay={0.18} tone="live" logoScale={logoScale} />
           )}
         </div>
 

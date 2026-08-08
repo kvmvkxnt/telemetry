@@ -4,18 +4,24 @@ import { motion } from "framer-motion";
 import type { Racer } from "@/lib/store";
 
 /** Slanted broadcast card: logo, brand, model. Slides in from its own side. */
+// Base heights in px at scale 1, sized for a projector rather than a laptop.
+// The operator tunes the multiplier from the admin panel at the venue.
+const LOGO_BASE = { lg: 150, md: 118 };
+
 export function VehiclePanel({
   racer,
   side,
   delay = 0,
   tone = "neutral",
   size = "lg",
+  logoScale = 1,
 }: {
   racer: Racer;
   side: "left" | "right";
   delay?: number;
   tone?: "neutral" | "live" | "gold" | "dim";
   size?: "lg" | "md";
+  logoScale?: number;
 }) {
   const toneClass = {
     neutral: "border-white/15 bg-white/[0.06]",
@@ -30,7 +36,7 @@ export function VehiclePanel({
       animate={{ x: 0, opacity: tone === "dim" ? 0.55 : 1 }}
       transition={{ duration: 0.75, delay, ease: [0.16, 1, 0.3, 1] }}
       className={`slant sweep ${tone === "gold" ? "sweep-gold" : ""} relative overflow-hidden border-2 ${toneClass} ${
-        size === "lg" ? "w-[420px] px-12 py-10" : "w-[360px] px-10 py-8"
+        size === "lg" ? "w-[460px] px-12 py-10" : "w-[400px] px-10 py-8"
       }`}
     >
       <div className="unslant flex flex-col items-center gap-4 text-center">
@@ -41,7 +47,8 @@ export function VehiclePanel({
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6, delay: delay + 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className={`${size === "lg" ? "h-24" : "h-16"} w-auto object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.25)]`}
+            style={{ height: LOGO_BASE[size] * logoScale }}
+            className="w-auto max-w-full object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.25)]"
           />
         ) : null}
         <div
