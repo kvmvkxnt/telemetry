@@ -24,3 +24,143 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ---- broadcast display language ----
+   Slanted panels, wipe reveals, light sweeps and layered parallax speed
+   fields. Everything below is continuous + smooth on purpose: no shake,
+   no jitter — motion reads as speed, not vibration. */
+
+.slant {
+  transform: skewX(-11deg);
+}
+.unslant {
+  transform: skewX(11deg);
+}
+
+/* Heavy broadcast title treatment. */
+.title-type {
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-style: italic;
+}
+
+@keyframes streak-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -1200px 0;
+  }
+}
+
+/* Three layers at different speeds/sizes = parallax depth. */
+.speed-far,
+.speed-mid,
+.speed-near {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+}
+.speed-far {
+  background-image: repeating-linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 90px
+  );
+  animation: streak-drift 3s linear infinite;
+}
+.speed-mid {
+  background-image: repeating-linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.09) 0px,
+    rgba(255, 255, 255, 0.09) 2px,
+    transparent 2px,
+    transparent 150px
+  );
+  animation: streak-drift 1.6s linear infinite;
+  filter: blur(0.4px);
+}
+.speed-near {
+  background-image: repeating-linear-gradient(
+    100deg,
+    rgba(225, 29, 42, 0.5) 0px,
+    rgba(225, 29, 42, 0.5) 3px,
+    transparent 3px,
+    transparent 320px
+  );
+  animation: streak-drift 0.8s linear infinite;
+  filter: blur(1.5px);
+}
+
+/* Shine passing across a panel. */
+@keyframes sweep-across {
+  0% {
+    transform: translateX(-140%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(340%) skewX(-20deg);
+  }
+}
+.sweep::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.18),
+    transparent
+  );
+  animation: sweep-across 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.sweep-gold::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(250, 204, 21, 0.35),
+    transparent
+  );
+}
+
+@keyframes checker-scroll {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -80px 0;
+  }
+}
+
+.checkered-flag {
+  background-image: repeating-conic-gradient(#0a0a0a 0% 25%, #ffffff 0% 50%);
+  background-size: 40px 40px;
+  animation: checker-scroll 1.2s linear infinite;
+}
+
+/* Slow breathing glow for the staged (pre-launch) state. */
+@keyframes stage-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+.stage-pulse {
+  animation: stage-pulse 2.4s ease-in-out infinite;
+}
+
+.vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 45%,
+    rgba(0, 0, 0, 0.75) 100%
+  );
+}
