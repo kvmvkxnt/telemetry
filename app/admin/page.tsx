@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLiveState } from "@/lib/client/useLiveState";
 import { api } from "@/lib/client/api";
 import { ResultForm } from "./ResultForm";
+import { ConfirmButton } from "./ConfirmButton";
 import type { PublicRace, Racer } from "@/lib/store";
 
 function vehicleName(r: Racer) {
@@ -69,6 +70,8 @@ export default function AdminPage() {
           </div>
         </section>
 
+        <LogoSizeControl scale={state.event.logo_scale} onError={setError} />
+
         <RacerAndRaceSetup racers={state.racers} onError={setError} />
 
         {state.racers.length > 0 && (
@@ -89,6 +92,13 @@ export default function AdminPage() {
                     </span>
                   )}
                   <span className="text-sm">{vehicleName(r)}</span>
+                  <button
+                    onClick={() => guarded(() => api.deleteRacer(r.id))}
+                    title="Delete vehicle"
+                    className="ml-1 text-neutral-600 hover:text-red-400"
+                  >
+                    ✕
+                  </button>
                 </div>
               ))}
             </div>
@@ -143,6 +153,21 @@ export default function AdminPage() {
                       {race.status === "completed" ? "Edit result" : "Enter result"}
                     </button>
                   )}
+                  {race.status === "completed" && (
+                    <ConfirmButton
+                      label="Clear result"
+                      confirmLabel="Clear — sure?"
+                      onConfirm={() => guarded(() => api.clearRaceResults(race.id))}
+                      className="bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                      armedClassName="bg-amber-600 hover:bg-amber-500"
+                    />
+                  )}
+                  <ConfirmButton
+                    label="Delete"
+                    confirmLabel="Delete — sure?"
+                    onConfirm={() => guarded(() => api.deleteRace(race.id))}
+                    className="bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+                  />
                 </div>
               </div>
             </div>
@@ -157,8 +182,108 @@ export default function AdminPage() {
             }}
           />
         )}
+
+        <section className="rounded-xl border border-red-900/60 bg-red-950/20 p-5">
+          <div className="mb-1 font-semibold text-red-300">Danger zone</div>
+          <p className="mb-4 text-sm text-neutral-400">
+            Bulk clears. These push to the display immediately and cannot be undone.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <ConfirmButton
+              label="Clear all results"
+              confirmLabel="Clear all results — sure?"
+              onConfirm={() => guarded(() => api.reset("results"))}
+              className="bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+              armedClassName="bg-amber-600 hover:bg-amber-500"
+            />
+            <ConfirmButton
+              label="Delete all races"
+              confirmLabel="Delete all races — sure?"
+              onConfirm={() => guarded(() => api.reset("races"))}
+              className="bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+            />
+            <ConfirmButton
+              label="Reset everything"
+              confirmLabel="Wipe races + vehicles — sure?"
+              onConfirm={() => guarded(() => api.reset("all"))}
+              className="bg-red-900/70 text-red-200 hover:bg-red-800"
+            />
+          </div>
+          <p className="mt-3 text-xs text-neutral-500">
+            Clear results keeps the running order · Delete races keeps the vehicles ·
+            Reset everything keeps only the event itself
+          </p>
+        </section>
       </div>
     </div>
+  );
+}
+
+function LogoSizeControl({
+  scale,
+  onError,
+}: {
+  scale: number;
+  onError: (e: string | null) => void;
+}) {
+  // Local value so dragging stays smooth; committed on release.
+  const [value, setValue] = useState(scale);
+  const [dragging, setDragging] = useState(false);
+
+  // Track server state unless the operator is actively dragging.
+  if (!dragging && value !== scale) setValue(scale);
+
+  async function commit(next: number) {
+    onError(null);
+    try {
+      await api.setLogoScale(next);
+    } catch (e) {
+      onError((e as Error).message);
+    }
+  }
+
+  return (
+    <section className="rounded-xl border border-neutral-800 bg-neutral-900 p-5">
+      <div className="mb-1 flex items-center justify-between">
+        <div className="font-semibold">Logo size on display</div>
+        <span className="tabular-nums text-sm text-neutral-400">{value.toFixed(2)}×</span>
+      </div>
+      <p className="mb-3 text-sm text-neutral-500">
+        Set this while watching the actual screen — the right size depends on the
+        projector and how far back the crowd stands.
+      </p>
+      <div className="flex items-center gap-3">
+        <input
+          type="range"
+          min={0.5}
+          max={3}
+          step={0.05}
+          value={value}
+          onChange={(e) => {
+            setDragging(true);
+            setValue(Number(e.target.value));
+          }}
+          onMouseUp={() => {
+            setDragging(false);
+            void commit(value);
+          }}
+          onTouchEnd={() => {
+            setDragging(false);
+            void commit(value);
+          }}
+          className="flex-1 accent-red-600"
+        />
+        <button
+          onClick={() => {
+            setValue(1);
+            void commit(1);
+          }}
+          className="rounded-md bg-neutral-800 px-3 py-1 text-xs font-semibold text-neutral-300 hover:bg-neutral-700"
+        >
+          Reset
+        </button>
+      </div>
+    </section>
   );
 }
 

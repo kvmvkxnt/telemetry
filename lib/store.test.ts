@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { createRace, createRacer, getPublicState, launchRace, stageRace, submitResults } from "./store";
+import {
+  clearRaceResults,
+  createRace,
+  createRacer,
+  deleteRace,
+  deleteRacer,
+  getPublicState,
+  getResultsForRace,
+  launchRace,
+  resetEvent,
+  stageRace,
+  submitResults,
+} from "./store";
 
 describe("store", () => {
   it("overwrites a race's result on resubmission (admin correction flow)", () => {
@@ -38,6 +50,70 @@ describe("store", () => {
         { racerId: a.id, distance: -1, elapsedTime: 12, topSpeed: 100, zeroToHundredTime: null, hundredToTwoHundredTime: null },
       ])
     ).toThrow();
+  });
+
+  it("deleting a race takes its results with it", () => {
+    const a = createRacer("Mazda", "RX-7", null);
+    const race = createRace(a.id, null);
+    submitResults(race.id, [
+      { racerId: a.id, distance: 402, elapsedTime: 12, topSpeed: 100, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+    ]);
+    expect(getResultsForRace(race.id)).toHaveLength(1);
+
+    deleteRace(race.id);
+
+    expect(getResultsForRace(race.id)).toHaveLength(0);
+    expect(getPublicState().leaderboard.some((r) => r.id === race.id)).toBe(false);
+  });
+
+  it("clearing results returns the race to the running order", () => {
+    const a = createRacer("Subaru", "WRX", null);
+    const race = createRace(a.id, null);
+    submitResults(race.id, [
+      { racerId: a.id, distance: 402, elapsedTime: 12, topSpeed: 100, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+    ]);
+
+    clearRaceResults(race.id);
+
+    const state = getPublicState();
+    expect(getResultsForRace(race.id)).toHaveLength(0);
+    expect(state.upcoming.map((r) => r.id)).toContain(race.id);
+    expect(state.leaderboard.map((r) => r.id)).not.toContain(race.id);
+  });
+
+  it("refuses to delete a vehicle that is still entered in a race", () => {
+    const a = createRacer("Porsche", "911", null);
+    const race = createRace(a.id, null);
+
+    expect(() => deleteRacer(a.id)).toThrow(/race/i);
+
+    deleteRace(race.id);
+    deleteRacer(a.id);
+    expect(getPublicState().racers.some((r) => r.id === a.id)).toBe(false);
+  });
+
+  it("reset scopes clear the right amount", () => {
+    resetEvent("all");
+    const a = createRacer("Audi", "RS6", null);
+    const race = createRace(a.id, null);
+    submitResults(race.id, [
+      { racerId: a.id, distance: 402, elapsedTime: 12, topSpeed: 100, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+    ]);
+
+    resetEvent("results");
+    let state = getPublicState();
+    expect(state.leaderboard).toHaveLength(0);
+    expect(state.upcoming).toHaveLength(1);
+    expect(state.racers).toHaveLength(1);
+
+    resetEvent("races");
+    state = getPublicState();
+    expect(state.upcoming).toHaveLength(0);
+    expect(state.racers).toHaveLength(1);
+
+    resetEvent("all");
+    state = getPublicState();
+    expect(state.racers).toHaveLength(0);
   });
 
   it("only one race can be staging/racing at a time", () => {
