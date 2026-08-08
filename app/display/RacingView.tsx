@@ -2,19 +2,29 @@
 
 import { motion } from "framer-motion";
 import type { PublicRace } from "@/lib/store";
+import { translator, type Lang } from "@/lib/i18n";
 import { StageFrame, WipeText } from "./StageFrame";
 import { VehiclePanel } from "./VehiclePanel";
 
 /** status: racing — cars are on the run. Speed comes from the field and the
  *  light bar, not from moving the cards. Panels stay rock steady. */
-export function RacingView({ race, logoScale }: { race: PublicRace; logoScale: number }) {
+export function RacingView({
+  race,
+  logoScale,
+  lang,
+}: {
+  race: PublicRace;
+  logoScale: number;
+  lang: Lang;
+}) {
+  const t = translator(lang);
   return (
     <StageFrame intensity="fast" accent="#10b981">
       <motion.div key={race.id} className="flex h-full flex-col items-center justify-center gap-12">
         <WipeText delay={0.05}>
           <div className="slant relative overflow-hidden border-l-4 border-emerald-400 bg-emerald-400/15 px-10 py-3">
             <div className="unslant title-type text-4xl tracking-[0.3em] text-emerald-300">
-              Racing
+              {t("racingLabel")}
             </div>
           </div>
         </WipeText>
@@ -40,7 +50,7 @@ export function RacingView({ race, logoScale }: { race: PublicRace; logoScale: n
           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
           className="text-sm font-semibold tracking-[0.4em] text-emerald-500/80 uppercase"
         >
-          Run in progress
+          {t("runInProgress")}
         </motion.div>
       </motion.div>
     </StageFrame>

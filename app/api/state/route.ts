@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPublicState, setLogoScale, setWinnerMetric } from "@/lib/store";
+import { getPublicState, setLanguage, setLogoScale, setWinnerMetric } from "@/lib/store";
 
 export async function GET() {
   return NextResponse.json(getPublicState());
@@ -19,6 +19,9 @@ export async function PATCH(req: Request) {
     }
     if (body.logoScale !== undefined) {
       setLogoScale(Number(body.logoScale));
+    }
+    if (body.language !== undefined) {
+      setLanguage(body.language);
     }
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });

@@ -2,11 +2,21 @@
 
 import { motion } from "framer-motion";
 import type { PublicRace } from "@/lib/store";
+import { translator, type Lang } from "@/lib/i18n";
 import { StageFrame, WipeText } from "./StageFrame";
 import { VehiclePanel } from "./VehiclePanel";
 
 /** status: staging — cars are lined up, not launched yet. */
-export function RaceInProgress({ race, logoScale }: { race: PublicRace; logoScale: number }) {
+export function RaceInProgress({
+  race,
+  logoScale,
+  lang,
+}: {
+  race: PublicRace;
+  logoScale: number;
+  lang: Lang;
+}) {
+  const t = translator(lang);
   return (
     <StageFrame intensity="calm" accent="#e11d2a">
       <motion.div
@@ -16,7 +26,7 @@ export function RaceInProgress({ race, logoScale }: { race: PublicRace; logoScal
         <WipeText delay={0.15}>
           <div className="slant border-l-4 border-red-600 bg-red-600/15 px-8 py-2">
             <div className="unslant title-type stage-pulse text-3xl tracking-[0.3em] text-red-500">
-              On the line
+              {t("onTheLine")}
             </div>
           </div>
         </WipeText>
@@ -38,7 +48,7 @@ export function RaceInProgress({ race, logoScale }: { race: PublicRace; logoScal
 
         <WipeText delay={0.7}>
           <div className="text-sm font-semibold tracking-[0.4em] text-neutral-600 uppercase">
-            Awaiting launch
+            {t("awaitingLaunch")}
           </div>
         </WipeText>
       </motion.div>
