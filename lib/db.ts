@@ -9,6 +9,9 @@ const db = new Database(dbPath);
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");
 
+// ponytail: no migration framework — CREATE TABLE IF NOT EXISTS never alters
+// an existing table. A schema change means deleting data/ and starting over,
+// which is fine pre-event (see README); it must not happen mid-event.
 db.exec(`
   CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,9 +24,9 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS racers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    vehicle TEXT,
-    photo_url TEXT
+    brand TEXT NOT NULL,
+    model TEXT NOT NULL,
+    logo_url TEXT
   );
 
   CREATE TABLE IF NOT EXISTS races (
@@ -32,7 +35,7 @@ db.exec(`
     racer_a_id INTEGER NOT NULL REFERENCES racers(id),
     racer_b_id INTEGER REFERENCES racers(id),
     status TEXT NOT NULL DEFAULT 'pending'
-      CHECK (status IN ('pending', 'in_progress', 'completed')),
+      CHECK (status IN ('pending', 'staging', 'racing', 'completed')),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 

@@ -12,11 +12,11 @@ async function json<T>(res: Response): Promise<T> {
 export const api = {
   getState: () => fetch("/api/state", { cache: "no-store" }).then((r) => json<PublicState>(r)),
 
-  createRacer: (name: string, vehicle: string) =>
+  createRacer: (brand: string, model: string, logoUrl: string | null) =>
     fetch("/api/racers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, vehicle }),
+      body: JSON.stringify({ brand, model, logoUrl }),
     }).then((r) => json<Racer>(r)),
 
   createRace: (racerAId: number, racerBId: number | null) =>
@@ -26,7 +26,18 @@ export const api = {
       body: JSON.stringify({ racerAId, racerBId }),
     }).then((r) => json(r)),
 
-  startRace: (raceId: number) => fetch(`/api/races/${raceId}/start`, { method: "POST" }).then((r) => json(r)),
+  uploadLogo: async (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: form });
+    return json<{ url: string }>(res);
+  },
+
+  /** Lines a race up ("on the line"). */
+  stageRace: (raceId: number) => fetch(`/api/races/${raceId}/stage`, { method: "POST" }).then((r) => json(r)),
+
+  /** Launches a staged race ("lights out — go"). */
+  launchRace: (raceId: number) => fetch(`/api/races/${raceId}/start`, { method: "POST" }).then((r) => json(r)),
 
   submitResults: (
     raceId: number,

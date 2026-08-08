@@ -126,13 +126,13 @@ export function ResultForm({ race, onDone }: { race: PublicRace; onDone: () => v
   return (
     <div className="rounded-xl border border-neutral-700 bg-neutral-900 p-6">
       <div className="mb-4 text-lg font-semibold text-white">
-        {race.status === "completed" ? "Edit result" : "Enter result"} — {race.racerA.name}
-        {race.racerB ? ` vs ${race.racerB.name}` : ""}
+        {race.status === "completed" ? "Edit result" : "Enter result"} — {race.racerA.brand} {race.racerA.model}
+        {race.racerB ? ` vs ${race.racerB.brand} ${race.racerB.model}` : ""}
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <RacerFields
-          label={race.racerA.name}
+          label={`${race.racerA.brand} ${race.racerA.model}`}
           fields={fieldsA}
           setFields={setFieldsA}
           onPullDragy={() => pullDragy("A", race.racerA)}
@@ -140,7 +140,7 @@ export function ResultForm({ race, onDone }: { race: PublicRace; onDone: () => v
         />
         {race.racerB && (
           <RacerFields
-            label={race.racerB.name}
+            label={`${race.racerB.brand} ${race.racerB.model}`}
             fields={fieldsB}
             setFields={setFieldsB}
             onPullDragy={() => pullDragy("B", race.racerB!)}

@@ -5,17 +5,19 @@ import { publish } from "./bus";
 export type Racer = {
   id: number;
   event_id: number;
-  name: string;
-  vehicle: string | null;
-  photo_url: string | null;
+  brand: string;
+  model: string;
+  logo_url: string | null;
 };
+
+export type RaceStatus = "pending" | "staging" | "racing" | "completed";
 
 export type Race = {
   id: number;
   event_id: number;
   racer_a_id: number;
   racer_b_id: number | null;
-  status: "pending" | "in_progress" | "completed";
+  status: RaceStatus;
   created_at: string;
 };
 
@@ -59,12 +61,14 @@ export function listRacers(): Racer[] {
   return db.prepare("SELECT * FROM racers WHERE event_id = ? ORDER BY id").all(event.id) as Racer[];
 }
 
-export function createRacer(name: string, vehicle: string | null, photoUrl: string | null): Racer {
-  if (!name.trim()) throw new Error("Racer name is required");
+export function createRacer(brand: string, model: string, logoUrl: string | null): Racer {
+  if (!brand.trim()) throw new Error("Brand is required");
+  if (!model.trim()) throw new Error("Model is required");
   const event = getOrCreateEvent();
   const info = db
-    .prepare("INSERT INTO racers (event_id, name, vehicle, photo_url) VALUES (?, ?, ?, ?)")
-    .run(event.id, name.trim(), vehicle, photoUrl);
+    .prepare("INSERT INTO racers (event_id, brand, model, logo_url) VALUES (?, ?, ?, ?)")
+    .run(event.id, brand.trim(), model.trim(), logoUrl);
+  publish();
   return db.prepare("SELECT * FROM racers WHERE id = ?").get(info.lastInsertRowid) as Racer;
 }
 
@@ -83,18 +87,25 @@ export function createRace(racerAId: number, racerBId: number | null): Race {
       "INSERT INTO races (event_id, racer_a_id, racer_b_id, status) VALUES (?, ?, ?, 'pending')"
     )
     .run(event.id, racerAId, racerBId);
+  publish();
   return db.prepare("SELECT * FROM races WHERE id = ?").get(info.lastInsertRowid) as Race;
 }
 
-/** Marks a race in_progress. Only one race is in_progress at a time. */
-export function startRace(raceId: number) {
+/** Lines a race up ("on the line"). Only one race is staging/racing at a time. */
+export function stageRace(raceId: number) {
   const tx = db.transaction((id: number) => {
     db.prepare(
-      "UPDATE races SET status = 'pending' WHERE status = 'in_progress' AND id != ?"
+      "UPDATE races SET status = 'pending' WHERE status IN ('staging', 'racing') AND id != ?"
     ).run(id);
-    db.prepare("UPDATE races SET status = 'in_progress' WHERE id = ?").run(id);
+    db.prepare("UPDATE races SET status = 'staging' WHERE id = ?").run(id);
   });
   tx(raceId);
+  publish();
+}
+
+/** Launches a staged race ("lights out"). */
+export function launchRace(raceId: number) {
+  db.prepare("UPDATE races SET status = 'racing' WHERE id = ? AND status = 'staging'").run(raceId);
   publish();
 }
 
@@ -209,7 +220,7 @@ export function getPublicState(): PublicState {
   const racersById = new Map(racers.map((r) => [r.id, r]));
   const races = listRaces();
 
-  const currentRaceRow = races.find((r) => r.status === "in_progress") ?? null;
+  const currentRaceRow = races.find((r) => r.status === "staging" || r.status === "racing") ?? null;
   const completed = races.filter((r) => r.status === "completed");
   const pending = races.filter((r) => r.status === "pending");
 
