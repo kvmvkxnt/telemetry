@@ -5,6 +5,8 @@
 // `RealDragySessionProvider` against the documented spec and swap it in
 // below via DRAGY_MODE=live. Do not guess at the API shape before then.
 
+/** Units match what the admin form and display expect: metres, seconds, km/h.
+ *  A real provider must convert if the Dragy API reports anything else. */
 export type DragySession = {
   distance: number;
   elapsedTime: number;
@@ -31,7 +33,7 @@ class StubDragySessionProvider implements DragySessionProvider {
     return {
       distance: 402,
       elapsedTime: 11.8 + Math.random() * 0.6,
-      topSpeed: 190 + Math.random() * 20,
+      topSpeed: 210 + Math.random() * 40,
       zeroToHundredTime: 3.9 + Math.random() * 0.4,
       hundredToTwoHundredTime: 9.5 + Math.random() * 0.8,
       raw,

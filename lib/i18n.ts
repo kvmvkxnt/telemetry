@@ -65,7 +65,7 @@ const en = {
   // result form
   distance: "Distance (m)",
   elapsedTimeField: "Elapsed time (s)",
-  topSpeedField: "Top speed (mph)",
+  topSpeedField: "Top speed (km/h)",
   zeroTo100Field: "0-100 time (s)",
   hundredTo200Field: "100-200 time (s, optional)",
   pullDragy: "Pull from Dragy",
@@ -104,7 +104,7 @@ const en = {
   zeroTo100: "0-100",
   hundredTo200: "100-200",
   unitSeconds: "s",
-  unitSpeed: "mph",
+  unitSpeed: "km/h",
 } as const;
 
 export type TranslationKey = keyof typeof en;
@@ -157,7 +157,7 @@ const ru: Record<TranslationKey, string> = {
 
   distance: "Дистанция (м)",
   elapsedTimeField: "Время заезда (с)",
-  topSpeedField: "Макс. скорость (миль/ч)",
+  topSpeedField: "Макс. скорость (км/ч)",
   zeroTo100Field: "Время 0-100 (с)",
   hundredTo200Field: "Время 100-200 (с, необязательно)",
   pullDragy: "Загрузить из Dragy",
@@ -195,7 +195,7 @@ const ru: Record<TranslationKey, string> = {
   zeroTo100: "0-100",
   hundredTo200: "100-200",
   unitSeconds: "с",
-  unitSpeed: "миль/ч",
+  unitSpeed: "км/ч",
 };
 
 const uz: Record<TranslationKey, string> = {
@@ -246,7 +246,7 @@ const uz: Record<TranslationKey, string> = {
 
   distance: "Masofa (m)",
   elapsedTimeField: "Sarflangan vaqt (s)",
-  topSpeedField: "Maks. tezlik (mph)",
+  topSpeedField: "Maks. tezlik (km/soat)",
   zeroTo100Field: "0-100 vaqti (s)",
   hundredTo200Field: "100-200 vaqti (s, ixtiyoriy)",
   pullDragy: "Dragy'dan olish",
@@ -284,7 +284,7 @@ const uz: Record<TranslationKey, string> = {
   zeroTo100: "0-100",
   hundredTo200: "100-200",
   unitSeconds: "s",
-  unitSpeed: "mph",
+  unitSpeed: "km/soat",
 };
 
 const DICTIONARIES: Record<Lang, Record<TranslationKey, string>> = { en, ru, uz };
