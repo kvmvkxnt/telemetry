@@ -70,7 +70,7 @@ export default function DisplayPage() {
     <div className="relative h-screen w-screen overflow-hidden bg-[#050505] text-white">
       <ConnectionBadge status={status} lang={lang} />
 
-      <div className="absolute inset-x-0 top-5 z-20 text-center text-sm font-semibold tracking-[0.45em] text-neutral-600 uppercase">
+      <div className="absolute inset-x-0 top-5 z-20 text-center text-3xl font-semibold tracking-[0.45em] text-neutral-600 uppercase">
         {state.event.name}
       </div>
 

@@ -19,7 +19,7 @@ db.exec(`
     name TEXT NOT NULL,
     date TEXT NOT NULL,
     winner_metric TEXT NOT NULL DEFAULT 'elapsed_time'
-      CHECK (winner_metric IN ('elapsed_time', 'top_speed'))
+      CHECK (winner_metric IN ('elapsed_time', 'top_speed', 'zero_to_60_time', 'zero_to_100_time'))
   );
 
   CREATE TABLE IF NOT EXISTS racers (
@@ -47,6 +47,7 @@ db.exec(`
     distance REAL,
     elapsed_time REAL,
     top_speed REAL,
+    zero_to_60_time REAL,
     zero_to_100_time REAL,
     hundred_to_200_time REAL,
     source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('manual', 'dragy')),
@@ -71,6 +72,39 @@ addColumn("events", "logo_scale", "REAL NOT NULL DEFAULT 1");
 
 // Display + admin language, switched from the admin panel.
 addColumn("events", "language", "TEXT NOT NULL DEFAULT 'en'");
+
+addColumn("results", "zero_to_60_time", "REAL");
+
+// A CHECK constraint can't be widened in place in SQLite either — same
+// rebuild-and-swap as migrateRaceStatuses below, guarded on the stored
+// schema text so it runs once.
+function migrateWinnerMetricCheck() {
+  const row = db
+    .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'events'")
+    .get() as { sql: string } | undefined;
+  if (!row || row.sql.includes("zero_to_60_time")) return;
+
+  db.pragma("foreign_keys = OFF");
+  db.exec(`
+    BEGIN;
+    CREATE TABLE events_migrated (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      date TEXT NOT NULL,
+      winner_metric TEXT NOT NULL DEFAULT 'elapsed_time'
+        CHECK (winner_metric IN ('elapsed_time', 'top_speed', 'zero_to_60_time', 'zero_to_100_time')),
+      logo_scale REAL NOT NULL DEFAULT 1,
+      language TEXT NOT NULL DEFAULT 'en'
+    );
+    INSERT INTO events_migrated (id, name, date, winner_metric, logo_scale, language)
+      SELECT id, name, date, winner_metric, logo_scale, language FROM events;
+    DROP TABLE events;
+    ALTER TABLE events_migrated RENAME TO events;
+    COMMIT;
+  `);
+  db.pragma("foreign_keys = ON");
+}
+migrateWinnerMetricCheck();
 
 // A CHECK constraint can't be altered in place in SQLite, so widening the set
 // of race statuses means rebuilding the table. Guarded on the stored schema

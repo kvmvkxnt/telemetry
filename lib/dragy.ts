@@ -10,7 +10,6 @@
 export type DragySession = {
   distance: number;
   elapsedTime: number;
-  topSpeed: number;
   zeroToHundredTime: number | null;
   hundredToTwoHundredTime: number | null;
   raw: unknown;
@@ -33,7 +32,6 @@ class StubDragySessionProvider implements DragySessionProvider {
     return {
       distance: 402,
       elapsedTime: 11.8 + Math.random() * 0.6,
-      topSpeed: 210 + Math.random() * 40,
       zeroToHundredTime: 3.9 + Math.random() * 0.4,
       hundredToTwoHundredTime: 9.5 + Math.random() * 0.8,
       raw,

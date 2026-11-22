@@ -8,7 +8,7 @@ import { translator, type Lang } from "@/lib/i18n";
 type FieldState = {
   distance: string;
   elapsedTime: string;
-  topSpeed: string;
+  zeroToSixtyTime: string;
   zeroToHundredTime: string;
   hundredToTwoHundredTime: string;
   source: "manual" | "dragy";
@@ -19,7 +19,7 @@ function emptyFields(existing: Result | null): FieldState {
   return {
     distance: existing?.distance?.toString() ?? "",
     elapsedTime: existing?.elapsed_time?.toString() ?? "",
-    topSpeed: existing?.top_speed?.toString() ?? "",
+    zeroToSixtyTime: existing?.zero_to_60_time?.toString() ?? "",
     zeroToHundredTime: existing?.zero_to_100_time?.toString() ?? "",
     hundredToTwoHundredTime: existing?.hundred_to_200_time?.toString() ?? "",
     source: (existing?.source as "manual" | "dragy") ?? "manual",
@@ -63,7 +63,8 @@ export function ResultForm({
       const next: FieldState = {
         distance: session.distance.toString(),
         elapsedTime: session.elapsedTime.toFixed(2),
-        topSpeed: session.topSpeed.toFixed(1),
+        // Dragy has no 0-60 figure to offer — keep whatever was typed manually.
+        zeroToSixtyTime: (who === "A" ? fieldsA : fieldsB).zeroToSixtyTime,
         zeroToHundredTime: session.zeroToHundredTime?.toFixed(2) ?? "",
         hundredToTwoHundredTime: session.hundredToTwoHundredTime?.toFixed(2) ?? "",
         source: "dragy",
@@ -79,7 +80,7 @@ export function ResultForm({
   }
 
   function validate(f: FieldState): string | null {
-    const nums = [f.distance, f.elapsedTime, f.topSpeed, f.zeroToHundredTime, f.hundredToTwoHundredTime];
+    const nums = [f.distance, f.elapsedTime, f.zeroToSixtyTime, f.zeroToHundredTime, f.hundredToTwoHundredTime];
     for (const v of nums) {
       if (v.trim() === "") continue;
       const n = Number(v);
@@ -105,7 +106,7 @@ export function ResultForm({
           racerId: race.racerA.id,
           distance: toNumberOrNull(fieldsA.distance),
           elapsedTime: toNumberOrNull(fieldsA.elapsedTime),
-          topSpeed: toNumberOrNull(fieldsA.topSpeed),
+          zeroToSixtyTime: toNumberOrNull(fieldsA.zeroToSixtyTime),
           zeroToHundredTime: toNumberOrNull(fieldsA.zeroToHundredTime),
           hundredToTwoHundredTime: toNumberOrNull(fieldsA.hundredToTwoHundredTime),
           source: fieldsA.source,
@@ -117,7 +118,7 @@ export function ResultForm({
           racerId: race.racerB.id,
           distance: toNumberOrNull(fieldsB.distance),
           elapsedTime: toNumberOrNull(fieldsB.elapsedTime),
-          topSpeed: toNumberOrNull(fieldsB.topSpeed),
+          zeroToSixtyTime: toNumberOrNull(fieldsB.zeroToSixtyTime),
           zeroToHundredTime: toNumberOrNull(fieldsB.zeroToHundredTime),
           hundredToTwoHundredTime: toNumberOrNull(fieldsB.hundredToTwoHundredTime),
           source: fieldsB.source,
@@ -215,7 +216,7 @@ function RacerFields({
       )}
       <LabeledInput label={t("distance")} value={fields.distance} onChange={set("distance")} />
       <LabeledInput label={t("elapsedTimeField")} value={fields.elapsedTime} onChange={set("elapsedTime")} />
-      <LabeledInput label={t("topSpeedField")} value={fields.topSpeed} onChange={set("topSpeed")} />
+      <LabeledInput label={t("zeroTo60Field")} value={fields.zeroToSixtyTime} onChange={set("zeroToSixtyTime")} />
       <LabeledInput label={t("zeroTo100Field")} value={fields.zeroToHundredTime} onChange={set("zeroToHundredTime")} />
       <LabeledInput
         label={t("hundredTo200Field")}

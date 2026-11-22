@@ -24,7 +24,7 @@ export function AwaitingResults({
       <motion.div key={race.id} className="flex h-full flex-col items-center justify-center gap-10">
         <WipeText delay={0.1}>
           <div className="slant border-l-4 border-amber-500 bg-amber-500/15 px-10 py-3">
-            <div className="unslant title-type text-4xl tracking-[0.28em] text-amber-300">
+            <div className="unslant title-type text-7xl tracking-[0.28em] text-amber-300">
               {t("awaitingResultsTitle")}
             </div>
           </div>

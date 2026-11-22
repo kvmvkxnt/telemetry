@@ -25,8 +25,8 @@ export function ResultReveal({
 }) {
   const t = translator(lang);
   useEffect(() => {
-    if (race.winnerRacerId == null) return;
-    // Two bursts: an immediate pop, then side cannons as the winner lands.
+    if (race.results.length === 0) return;
+    // Two bursts: an immediate pop, then side cannons as the results land.
     const t = setTimeout(() => {
       confetti({ particleCount: 90, spread: 100, startVelocity: 45, origin: { y: 0.35 } });
       const end = Date.now() + 1600;
@@ -37,7 +37,7 @@ export function ResultReveal({
       })();
     }, 700);
     return () => clearTimeout(t);
-  }, [race.id, race.winnerRacerId]);
+  }, [race.id, race.results.length]);
 
   const resultFor = (racerId: number) => race.results.find((r) => r.racer_id === racerId) ?? null;
 
@@ -60,7 +60,6 @@ export function ResultReveal({
           <ResultCard
             racer={race.racerA}
             result={resultFor(race.racerA.id)}
-            isWinner={race.winnerRacerId === race.racerA.id}
             metric={metric}
             side="left"
             delay={0.5}
@@ -71,7 +70,6 @@ export function ResultReveal({
             <ResultCard
               racer={race.racerB}
               result={resultFor(race.racerB.id)}
-              isWinner={race.winnerRacerId === race.racerB.id}
               metric={metric}
               side="right"
               delay={0.62}
@@ -95,7 +93,6 @@ export function ResultReveal({
 function ResultCard({
   racer,
   result,
-  isWinner,
   metric,
   side,
   delay,
@@ -104,7 +101,6 @@ function ResultCard({
 }: {
   racer: Racer;
   result: Result | null;
-  isWinner: boolean;
   metric: WinnerMetric;
   side: "left" | "right";
   delay: number;
@@ -113,32 +109,15 @@ function ResultCard({
 }) {
   const t = translator(lang);
   const elapsed = useCountUp(result?.elapsed_time ?? 0, 1600);
-  const speed = useCountUp(result?.top_speed ?? 0, 1600);
 
   return (
     <motion.div
       initial={{ x: side === "left" ? -140 : 140, opacity: 0 }}
-      animate={{ x: 0, opacity: isWinner ? 1 : 0.6 }}
+      animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
-      className={`slant sweep ${isWinner ? "sweep-gold" : ""} relative w-[440px] overflow-hidden border-2 px-10 py-8 ${
-        isWinner ? "border-yellow-400 bg-yellow-400/12" : "border-white/10 bg-white/[0.04]"
-      }`}
-      style={
-        isWinner ? { boxShadow: "0 0 70px 6px rgba(250,204,21,0.35)" } : undefined
-      }
+      className="slant sweep relative w-[440px] overflow-hidden border-2 border-white/10 bg-white/[0.04] px-10 py-8"
     >
       <div className="unslant">
-        {isWinner && (
-          <motion.div
-            initial={{ y: -16, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: delay + 0.45, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-3 text-center title-type text-xl tracking-[0.3em] text-yellow-400"
-          >
-            ★ {t("winner")} ★
-          </motion.div>
-        )}
-
         <div className="flex flex-col items-center gap-2 text-center">
           {racer.logo_url ? (
             <motion.div
@@ -157,9 +136,23 @@ function ResultCard({
 
         <div className="space-y-1.5">
           <Metric label={t("elapsed")} value={elapsed} unit={t("unitSeconds")} emphasize={metric === "elapsed_time"} delay={delay} />
-          <Metric label={t("topSpeedLabel")} value={speed} unit={t("unitSpeed")} emphasize={metric === "top_speed"} delay={delay} />
+          {result?.zero_to_60_time != null && (
+            <Metric
+              label={t("zeroTo60")}
+              value={result.zero_to_60_time}
+              unit={t("unitSeconds")}
+              emphasize={metric === "zero_to_60_time"}
+              delay={delay}
+            />
+          )}
           {result?.zero_to_100_time != null && (
-            <Metric label={t("zeroTo100")} value={result.zero_to_100_time} unit={t("unitSeconds")} delay={delay} />
+            <Metric
+              label={t("zeroTo100")}
+              value={result.zero_to_100_time}
+              unit={t("unitSeconds")}
+              emphasize={metric === "zero_to_100_time"}
+              delay={delay}
+            />
           )}
           {result?.hundred_to_200_time != null && (
             <Metric label={t("hundredTo200")} value={result.hundred_to_200_time} unit={t("unitSeconds")} delay={delay} />
@@ -189,7 +182,7 @@ function Metric({
       animate={{ clipPath: "inset(0 0% 0 0)" }}
       transition={{ duration: 0.6, delay: delay + 0.35, ease: [0.16, 1, 0.3, 1] }}
       className={`flex items-baseline justify-between border-b border-white/10 pb-1 ${
-        emphasize ? "text-yellow-300" : "text-neutral-300"
+        emphasize ? "text-red-400" : "text-neutral-300"
       }`}
     >
       <span className="text-xs font-semibold tracking-[0.2em] uppercase">{label}</span>

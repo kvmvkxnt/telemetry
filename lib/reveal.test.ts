@@ -20,7 +20,7 @@ function race(id: number, elapsed: number, createdAt = "2026-08-08 10:00:00"): P
         racer_id: 1,
         distance: 402,
         elapsed_time: elapsed,
-        top_speed: 220,
+        zero_to_60_time: null,
         zero_to_100_time: null,
         hundred_to_200_time: null,
         source: "manual",

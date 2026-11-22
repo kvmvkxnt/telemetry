@@ -33,7 +33,7 @@ export type Result = {
   racer_id: number;
   distance: number | null;
   elapsed_time: number | null;
-  top_speed: number | null;
+  zero_to_60_time: number | null;
   zero_to_100_time: number | null;
   hundred_to_200_time: number | null;
   source: "manual" | "dragy";
@@ -151,7 +151,7 @@ export type ResultInput = {
   racerId: number;
   distance: number | null;
   elapsedTime: number | null;
-  topSpeed: number | null;
+  zeroToSixtyTime?: number | null;
   zeroToHundredTime: number | null;
   hundredToTwoHundredTime: number | null;
   source?: "manual" | "dragy";
@@ -162,7 +162,7 @@ function validateResult(r: ResultInput) {
   const fields: [string, number | null][] = [
     ["distance", r.distance],
     ["elapsed_time", r.elapsedTime],
-    ["top_speed", r.topSpeed],
+    ["zero_to_60_time", r.zeroToSixtyTime ?? null],
     ["zero_to_100_time", r.zeroToHundredTime],
     ["hundred_to_200_time", r.hundredToTwoHundredTime],
   ];
@@ -181,12 +181,12 @@ export function submitResults(raceId: number, results: ResultInput[]) {
     for (const r of results) {
       db.prepare(
         `INSERT INTO results
-          (race_id, racer_id, distance, elapsed_time, top_speed, zero_to_100_time, hundred_to_200_time, source, raw_dragy_payload)
-         VALUES (@raceId, @racerId, @distance, @elapsedTime, @topSpeed, @zeroToHundredTime, @hundredToTwoHundredTime, @source, @rawDragyPayload)
+          (race_id, racer_id, distance, elapsed_time, zero_to_60_time, zero_to_100_time, hundred_to_200_time, source, raw_dragy_payload)
+         VALUES (@raceId, @racerId, @distance, @elapsedTime, @zeroToSixtyTime, @zeroToHundredTime, @hundredToTwoHundredTime, @source, @rawDragyPayload)
          ON CONFLICT(race_id, racer_id) DO UPDATE SET
            distance = excluded.distance,
            elapsed_time = excluded.elapsed_time,
-           top_speed = excluded.top_speed,
+           zero_to_60_time = excluded.zero_to_60_time,
            zero_to_100_time = excluded.zero_to_100_time,
            hundred_to_200_time = excluded.hundred_to_200_time,
            source = excluded.source,
@@ -197,7 +197,7 @@ export function submitResults(raceId: number, results: ResultInput[]) {
         racerId: r.racerId,
         distance: r.distance,
         elapsedTime: r.elapsedTime,
-        topSpeed: r.topSpeed,
+        zeroToSixtyTime: r.zeroToSixtyTime ?? null,
         zeroToHundredTime: r.zeroToHundredTime,
         hundredToTwoHundredTime: r.hundredToTwoHundredTime,
         source: r.source ?? "manual",
@@ -291,7 +291,8 @@ function hydrateRace(race: Race, racersById: Map<number, Racer>, metric: WinnerM
           results.map((r) => ({
             racer_id: r.racer_id,
             elapsed_time: r.elapsed_time,
-            top_speed: r.top_speed,
+            zero_to_60_time: r.zero_to_60_time,
+            zero_to_100_time: r.zero_to_100_time,
           })),
           metric
         )

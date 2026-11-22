@@ -2,6 +2,7 @@
 
 import type { PublicState, Racer } from "@/lib/store";
 import type { DragySession } from "@/lib/dragy";
+import type { WinnerMetric } from "@/lib/winner";
 
 async function json<T>(res: Response): Promise<T> {
   const body = await res.json();
@@ -48,7 +49,7 @@ export const api = {
       racerId: number;
       distance: number | null;
       elapsedTime: number | null;
-      topSpeed: number | null;
+      zeroToSixtyTime?: number | null;
       zeroToHundredTime: number | null;
       hundredToTwoHundredTime: number | null;
       source?: "manual" | "dragy";
@@ -66,7 +67,7 @@ export const api = {
       json<{ session: DragySession | null }>(r)
     ),
 
-  setWinnerMetric: (winnerMetric: "elapsed_time" | "top_speed") =>
+  setWinnerMetric: (winnerMetric: WinnerMetric) =>
     fetch("/api/state", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

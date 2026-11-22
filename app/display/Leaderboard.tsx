@@ -9,6 +9,12 @@ import { translator, type Lang } from "@/lib/i18n";
 
 const ROW_LOGO_BASE = 52;
 
+const STAT_COLUMNS = [
+  { metric: "elapsed_time", label: "elapsed", unit: "unitSeconds", digits: 2 },
+  { metric: "zero_to_60_time", label: "zeroTo60", unit: "unitSeconds", digits: 2 },
+  { metric: "zero_to_100_time", label: "zeroTo100", unit: "unitSeconds", digits: 2 },
+] as const;
+
 export function Leaderboard({
   races,
   metric,
@@ -30,12 +36,7 @@ export function Leaderboard({
       }))
     )
     .filter((row) => row.racer != null)
-    .sort((a, b) => {
-      if (metric === "elapsed_time") {
-        return (a.result.elapsed_time ?? Infinity) - (b.result.elapsed_time ?? Infinity);
-      }
-      return (b.result.top_speed ?? -Infinity) - (a.result.top_speed ?? -Infinity);
-    });
+    .sort((a, b) => (a.result[metric] ?? Infinity) - (b.result[metric] ?? Infinity));
 
   return (
     <StageFrame intensity="calm" accent="#e11d2a">
@@ -52,6 +53,23 @@ export function Leaderboard({
               </div>
             </WipeText>
 
+            <div className="mb-1 flex items-center justify-between px-8">
+              <span className="w-10" />
+              <span className="flex-1" />
+              <div className="flex gap-6 tabular-nums">
+                {STAT_COLUMNS.map((col) => (
+                  <span
+                    key={col.metric}
+                    className={`w-24 text-right text-xs font-semibold tracking-[0.15em] uppercase ${
+                      metric === col.metric ? "text-red-400" : "text-neutral-600"
+                    }`}
+                  >
+                    {t(col.label)}
+                  </span>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <AnimatePresence initial={false}>
                 {rows.map((row, i) => (
@@ -65,20 +83,10 @@ export function Leaderboard({
                       delay: Math.min(i * 0.06, 0.5),
                       ease: [0.16, 1, 0.3, 1],
                     }}
-                    className={`slant sweep relative flex items-center justify-between overflow-hidden border-l-4 px-8 py-4 ${
-                      i === 0
-                        ? "sweep-gold border-yellow-400 bg-yellow-400/12"
-                        : "border-white/20 bg-white/[0.04]"
-                    }`}
+                    className="slant sweep relative flex items-center justify-between overflow-hidden border-l-4 border-white/20 bg-white/[0.04] px-8 py-4"
                   >
                     <div className="unslant flex items-center gap-5">
-                      <span
-                        className={`w-10 title-type text-3xl ${
-                          i === 0 ? "text-yellow-400" : "text-neutral-600"
-                        }`}
-                      >
-                        {i + 1}
-                      </span>
+                      <span className="w-10 title-type text-3xl text-neutral-600">{i + 1}</span>
                       {row.racer!.logo_url ? (
                         <LogoBox src={row.racer!.logo_url} height={ROW_LOGO_BASE * logoScale} />
                       ) : null}
@@ -89,27 +97,22 @@ export function Leaderboard({
                         </span>
                       </span>
                     </div>
-                    <div className="unslant flex gap-8 tabular-nums">
-                      <span
-                        className={
-                          metric === "elapsed_time"
-                            ? "text-2xl font-black text-yellow-300"
-                            : "text-xl font-bold text-neutral-300"
-                        }
-                      >
-                        {row.result.elapsed_time?.toFixed(2) ?? "–"}
-                        <span className="ml-1 text-xs text-neutral-500">{t("unitSeconds")}</span>
-                      </span>
-                      <span
-                        className={
-                          metric === "top_speed"
-                            ? "text-2xl font-black text-yellow-300"
-                            : "text-xl font-bold text-neutral-300"
-                        }
-                      >
-                        {row.result.top_speed?.toFixed(1) ?? "–"}
-                        <span className="ml-1 text-xs text-neutral-500">{t("unitSpeed")}</span>
-                      </span>
+                    <div className="unslant flex gap-6 tabular-nums">
+                      {STAT_COLUMNS.map((col) => {
+                        const value = row.result[col.metric];
+                        const emphasize = metric === col.metric;
+                        return (
+                          <span
+                            key={col.metric}
+                            className={`w-24 text-right ${
+                              emphasize ? "text-xl font-black text-red-400" : "text-base font-bold text-neutral-300"
+                            }`}
+                          >
+                            {value?.toFixed(col.digits) ?? "–"}
+                            <span className="ml-1 text-xs text-neutral-500">{t(col.unit)}</span>
+                          </span>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 ))}

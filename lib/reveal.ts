@@ -8,7 +8,7 @@ import type { PublicRace } from "./store";
  */
 export function resultSignature(race: PublicRace): string {
   return race.results
-    .map((r) => `${r.racer_id}:${r.elapsed_time}:${r.top_speed}:${r.created_at}`)
+    .map((r) => `${r.racer_id}:${r.elapsed_time}:${r.zero_to_60_time}:${r.zero_to_100_time}:${r.created_at}`)
     .sort()
     .join("|");
 }

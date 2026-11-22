@@ -7,6 +7,13 @@ import { ResultForm } from "./ResultForm";
 import { ConfirmButton } from "./ConfirmButton";
 import type { PublicRace, RaceStatus, Racer } from "@/lib/store";
 import { LANGUAGES, LANGUAGE_NAMES, translator, type Lang, type TranslationKey } from "@/lib/i18n";
+import { WINNER_METRICS, type WinnerMetric } from "@/lib/winner";
+
+const METRIC_KEY: Record<WinnerMetric, TranslationKey> = {
+  elapsed_time: "fastestTime",
+  zero_to_60_time: "zeroTo60",
+  zero_to_100_time: "zeroTo100",
+};
 
 function vehicleName(r: Racer) {
   return `${r.brand} ${r.model}`;
@@ -97,7 +104,7 @@ export default function AdminPage() {
           <div className="flex items-center justify-between">
             <div className="font-semibold">{t("winnerMetric")}</div>
             <div className="flex gap-2">
-              {(["elapsed_time", "top_speed"] as const).map((m) => (
+              {WINNER_METRICS.map((m) => (
                 <button
                   key={m}
                   onClick={() => guarded(() => api.setWinnerMetric(m))}
@@ -105,7 +112,7 @@ export default function AdminPage() {
                     state.event.winner_metric === m ? "bg-red-600" : "bg-neutral-800 text-neutral-400"
                   }`}
                 >
-                  {m === "elapsed_time" ? t("fastestTime") : t("topSpeed")}
+                  {t(METRIC_KEY[m])}
                 </button>
               ))}
             </div>

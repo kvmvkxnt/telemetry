@@ -22,9 +22,8 @@ const en = {
   languageHint: "Applies to this panel and the public display.",
 
   // settings
-  winnerMetric: "Winner metric",
+  winnerMetric: "Leaderboard sort",
   fastestTime: "Fastest time",
-  topSpeed: "Top speed",
   logoSize: "Logo size on display",
   logoSizeHint:
     "Set this while watching the actual screen — the right size depends on the projector and how far back the crowd stands.",
@@ -65,7 +64,7 @@ const en = {
   // result form
   distance: "Distance (m)",
   elapsedTimeField: "Elapsed time (s)",
-  topSpeedField: "Top speed (km/h)",
+  zeroTo60Field: "0-60 time (s)",
   zeroTo100Field: "0-100 time (s)",
   hundredTo200Field: "100-200 time (s, optional)",
   pullDragy: "Pull from Dragy",
@@ -95,16 +94,14 @@ const en = {
   runInProgress: "Run in progress",
   awaitingResultsTitle: "Awaiting results",
   awaitingResultsSub: "Timing being confirmed",
-  resultTitle: "Result",
-  winner: "Winner",
+  resultTitle: "Results",
   leaderboard: "Leaderboard",
   standingBy: "Standing by",
   elapsed: "Elapsed",
-  topSpeedLabel: "Top speed",
+  zeroTo60: "0-60",
   zeroTo100: "0-100",
   hundredTo200: "100-200",
   unitSeconds: "s",
-  unitSpeed: "km/h",
 } as const;
 
 export type TranslationKey = keyof typeof en;
@@ -118,9 +115,8 @@ const ru: Record<TranslationKey, string> = {
   language: "Язык",
   languageHint: "Применяется к этой панели и к экрану для зрителей.",
 
-  winnerMetric: "Критерий победы",
+  winnerMetric: "Сортировка таблицы",
   fastestTime: "Лучшее время",
-  topSpeed: "Макс. скорость",
   logoSize: "Размер логотипа на экране",
   logoSizeHint:
     "Настраивайте, глядя на реальный экран — нужный размер зависит от проектора и того, как далеко стоят зрители.",
@@ -157,7 +153,7 @@ const ru: Record<TranslationKey, string> = {
 
   distance: "Дистанция (м)",
   elapsedTimeField: "Время заезда (с)",
-  topSpeedField: "Макс. скорость (км/ч)",
+  zeroTo60Field: "Время 0-60 (с)",
   zeroTo100Field: "Время 0-100 (с)",
   hundredTo200Field: "Время 100-200 (с, необязательно)",
   pullDragy: "Загрузить из Dragy",
@@ -186,16 +182,14 @@ const ru: Record<TranslationKey, string> = {
   runInProgress: "Заезд идёт",
   awaitingResultsTitle: "Ожидание результатов",
   awaitingResultsSub: "Идёт подтверждение времени",
-  resultTitle: "Результат",
-  winner: "Победитель",
+  resultTitle: "Результаты",
   leaderboard: "Таблица результатов",
   standingBy: "Ожидание",
   elapsed: "Время",
-  topSpeedLabel: "Макс. скорость",
+  zeroTo60: "0-60",
   zeroTo100: "0-100",
   hundredTo200: "100-200",
   unitSeconds: "с",
-  unitSpeed: "км/ч",
 };
 
 const uz: Record<TranslationKey, string> = {
@@ -207,9 +201,8 @@ const uz: Record<TranslationKey, string> = {
   language: "Til",
   languageHint: "Ushbu panelga va tomoshabinlar ekraniga qo'llaniladi.",
 
-  winnerMetric: "G'olib mezoni",
+  winnerMetric: "Reyting saralash",
   fastestTime: "Eng tez vaqt",
-  topSpeed: "Maks. tezlik",
   logoSize: "Ekrandagi logo o'lchami",
   logoSizeHint:
     "Buni haqiqiy ekranga qarab sozlang — kerakli o'lcham proyektorga va tomoshabinlar qanchalik uzoqda turishiga bog'liq.",
@@ -246,7 +239,7 @@ const uz: Record<TranslationKey, string> = {
 
   distance: "Masofa (m)",
   elapsedTimeField: "Sarflangan vaqt (s)",
-  topSpeedField: "Maks. tezlik (km/soat)",
+  zeroTo60Field: "0-60 vaqti (s)",
   zeroTo100Field: "0-100 vaqti (s)",
   hundredTo200Field: "100-200 vaqti (s, ixtiyoriy)",
   pullDragy: "Dragy'dan olish",
@@ -275,16 +268,14 @@ const uz: Record<TranslationKey, string> = {
   runInProgress: "Poyga davom etmoqda",
   awaitingResultsTitle: "Natija kutilmoqda",
   awaitingResultsSub: "Vaqt tasdiqlanmoqda",
-  resultTitle: "Natija",
-  winner: "G'olib",
+  resultTitle: "Natijalar",
   leaderboard: "Reyting",
   standingBy: "Kutilmoqda",
   elapsed: "Vaqt",
-  topSpeedLabel: "Maks. tezlik",
+  zeroTo60: "0-60",
   zeroTo100: "0-100",
   hundredTo200: "100-200",
   unitSeconds: "s",
-  unitSpeed: "km/soat",
 };
 
 const DICTIONARIES: Record<Lang, Record<TranslationKey, string>> = { en, ru, uz };

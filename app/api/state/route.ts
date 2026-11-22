@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPublicState, setLanguage, setLogoScale, setWinnerMetric } from "@/lib/store";
+import { WINNER_METRICS } from "@/lib/winner";
 
 export async function GET() {
   return NextResponse.json(getPublicState());
@@ -9,9 +10,9 @@ export async function PATCH(req: Request) {
   const body = await req.json();
   try {
     if (body.winnerMetric !== undefined) {
-      if (body.winnerMetric !== "elapsed_time" && body.winnerMetric !== "top_speed") {
+      if (!WINNER_METRICS.includes(body.winnerMetric)) {
         return NextResponse.json(
-          { error: "winnerMetric must be elapsed_time or top_speed" },
+          { error: `winnerMetric must be one of: ${WINNER_METRICS.join(", ")}` },
           { status: 400 }
         );
       }

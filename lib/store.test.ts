@@ -24,8 +24,8 @@ describe("store", () => {
     launchRace(race.id);
 
     submitResults(race.id, [
-      { racerId: a.id, distance: 402, elapsedTime: 12.0, topSpeed: 110, zeroToHundredTime: null, hundredToTwoHundredTime: null },
-      { racerId: b.id, distance: 402, elapsedTime: 11.5, topSpeed: 108, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+      { racerId: a.id, distance: 402, elapsedTime: 12.0, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+      { racerId: b.id, distance: 402, elapsedTime: 11.5, zeroToHundredTime: null, hundredToTwoHundredTime: null },
     ]);
 
     let state = getPublicState();
@@ -34,8 +34,8 @@ describe("store", () => {
 
     // Correction: Toyota's time was actually faster — resubmit, must overwrite not duplicate.
     submitResults(race.id, [
-      { racerId: a.id, distance: 402, elapsedTime: 11.0, topSpeed: 112, zeroToHundredTime: null, hundredToTwoHundredTime: null },
-      { racerId: b.id, distance: 402, elapsedTime: 11.5, topSpeed: 108, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+      { racerId: a.id, distance: 402, elapsedTime: 11.0, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+      { racerId: b.id, distance: 402, elapsedTime: 11.5, zeroToHundredTime: null, hundredToTwoHundredTime: null },
     ]);
 
     state = getPublicState();
@@ -49,7 +49,7 @@ describe("store", () => {
     const race = createRace(a.id, null);
     expect(() =>
       submitResults(race.id, [
-        { racerId: a.id, distance: -1, elapsedTime: 12, topSpeed: 100, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+        { racerId: a.id, distance: -1, elapsedTime: 12, zeroToHundredTime: null, hundredToTwoHundredTime: null },
       ])
     ).toThrow();
   });
@@ -58,7 +58,7 @@ describe("store", () => {
     const a = createRacer("Mazda", "RX-7", null);
     const race = createRace(a.id, null);
     submitResults(race.id, [
-      { racerId: a.id, distance: 402, elapsedTime: 12, topSpeed: 100, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+      { racerId: a.id, distance: 402, elapsedTime: 12, zeroToHundredTime: null, hundredToTwoHundredTime: null },
     ]);
     expect(getResultsForRace(race.id)).toHaveLength(1);
 
@@ -72,7 +72,7 @@ describe("store", () => {
     const a = createRacer("Subaru", "WRX", null);
     const race = createRace(a.id, null);
     submitResults(race.id, [
-      { racerId: a.id, distance: 402, elapsedTime: 12, topSpeed: 100, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+      { racerId: a.id, distance: 402, elapsedTime: 12, zeroToHundredTime: null, hundredToTwoHundredTime: null },
     ]);
 
     clearRaceResults(race.id);
@@ -99,7 +99,7 @@ describe("store", () => {
     const a = createRacer("Audi", "RS6", null);
     const race = createRace(a.id, null);
     submitResults(race.id, [
-      { racerId: a.id, distance: 402, elapsedTime: 12, topSpeed: 100, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+      { racerId: a.id, distance: 402, elapsedTime: 12, zeroToHundredTime: null, hundredToTwoHundredTime: null },
     ]);
 
     resetEvent("results");
@@ -132,7 +132,7 @@ describe("store", () => {
     expect(state.leaderboard).toHaveLength(0);
 
     submitResults(race.id, [
-      { racerId: a.id, distance: 402, elapsedTime: 11, topSpeed: 120, zeroToHundredTime: null, hundredToTwoHundredTime: null },
+      { racerId: a.id, distance: 402, elapsedTime: 11, zeroToHundredTime: null, hundredToTwoHundredTime: null },
     ]);
 
     state = getPublicState();
